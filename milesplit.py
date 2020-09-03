@@ -1,7 +1,14 @@
 from bs4 import BeautifulSoup
 import json
 from mongoengine import *
-from requests_html import HTMLSession
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support.expected_conditions import presence_of_element_located
+import sys
+from time import sleep
 
 connect("xcstats20")
 
@@ -34,17 +41,22 @@ class School(Document):
 
 class MileSplit():
     def __init__(self):
-        pass
+        self.chrome_options = Options()
+        self.chrome_options.add_argument("--headless")
+        self.driver = webdriver.Chrome(executable_path="/usr/bin/chromedriver",
+                                       options=self.chrome_options)
 
     def addMeetResults(self, url):
         formattedUrl = url
         if "raw" in formattedUrl:
-            formattedUrl = url[url.index("raw")] + "formatted"
-        session = HTMLSession()
-        page = session.get(formattedUrl)
-        page.html.render()
-        soup = BeautifulSoup(page.html.html, "html.parser")
-
+            formattedUrl = url[:url.index("raw")] + "formatted"
+        else:
+            formattedUrl = url[:url.index("formatted")+len("formatted")]
+        self.driver.get(formattedUrl)
+        # page = self.driver.execute_script("return document.body")
+        # sleep(10)
+        # soup = BeautifulSoup(page.get_attribute("innerHTML"), "html.parser")
+        soup = BeautifulSoup(self.driver.page_source, "html.parser")
         # get meet name
         meet = soup.select("h1.meetName")[0]
 
@@ -64,7 +76,7 @@ class MileSplit():
             else:
                 continue
             for finish in results[sectionNum].find_all("tr"):
-                place, name, grade, school, time, points = (field.get_text() for field in finish.find_all("td"))  # nice
+                place, name, grade, school, time, points = ((field.get_text() if "data-text" not in field.attrs else (field.get_text() if not field["data-text"] else field["data-text"])) for field in finish.find_all("td"))  # nice
                 result = Result(name=" ".join(name.split()),
                                 school=" ".join(school.split()),
                                 time=" ".join(time.split()))
