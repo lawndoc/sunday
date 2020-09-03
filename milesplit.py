@@ -21,7 +21,7 @@ class Result(EmbeddedDocument):
 
 class Meet(Document):
     name = StringField(required=True)
-    date = DateField()
+    date = DateField(required=True)
     boysResults = ListField()
     girlsResults = ListField()
 
@@ -34,9 +34,10 @@ class Athlete(EmbeddedDocument):
 
 
 class School(Document):
+    name = StringField(required=True)
+    classSize = StringField(required=True)
     boys = ListField(EmbeddedDocumentField(Athlete))
     girls = ListField(EmbeddedDocumentField(Athlete))
-    classSize = StringField(required=True)
 
 
 class MileSplit():
@@ -57,8 +58,10 @@ class MileSplit():
         # sleep(10)
         # soup = BeautifulSoup(page.get_attribute("innerHTML"), "html.parser")
         soup = BeautifulSoup(self.driver.page_source, "html.parser")
-        # get meet name
+        # get meet name and date
         meet = soup.select("h1.meetName")[0]
+        # TODO: get meet date
+        # TODO: create meet document
 
         # parse result data
         data = soup.find_all("table")[0]
@@ -80,7 +83,11 @@ class MileSplit():
                 result = Result(name=" ".join(name.split()),
                                 school=" ".join(school.split()),
                                 time=" ".join(time.split()))
+                # TODO: add result to meet according to gender
+
+                # TODO: add school if not already in db
+                # TODO: add athlete according to gender if not already in db
+                # TODO: add meet to athlete's meets
                 print(json.loads(result.to_json()))
-            # print(results[sectionNum].get_text().strip())
 
 
