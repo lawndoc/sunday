@@ -1,4 +1,4 @@
-from milesplit import MileSplit
+from app.milesplit import MileSplit
 
 scraper = MileSplit()
 
