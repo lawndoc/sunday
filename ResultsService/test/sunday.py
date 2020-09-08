@@ -1,3 +1,7 @@
+import sys, os
+# add app packages to path
+sys.path.insert(1, os.path.join(sys.path[0], '..'))
+
 from app.milesplit import MileSplit
 
 scraper = MileSplit()
