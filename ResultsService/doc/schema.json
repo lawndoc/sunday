@@ -6,11 +6,11 @@
         "title": "Team and Individual Stats",
         "description": "The stats API fetches results for a specific class, conference, school, or athlete.",
         "default": {
-          "class": "all",
-          "conference": "all",
-          "school": "all",
+          "class": ["all"],
+          "conference": ["all"],
+          "school": ["all"],
           "gender": "all",
-          "athlete": "all"
+          "athlete": ["all"]
         },
         "example_requests": [
           {
@@ -89,15 +89,17 @@
         "title": "Meet Results",
         "description": "The meet API fetches results for the specified meet(s).",
         "default": {
-          "meet": "all",
-          "date": "all",
-          "school": "all"
+          "meet": ["all"],
+          "date": ["all"],
+          "school": ["all"],
+          "gender": "all"
         },
         "examples": [
             {
                 "meet": ["Pella Quad", "Pella Invite"],
                 "date": ["08/29/20", "09/05/20"],
-                "school": ["Pella", "Pella Christian"]
+                "school": ["Pella", "Pella Christian"],
+                "gender": "Girls"
             }
         ],
         "required": [
@@ -133,6 +135,16 @@
             "examples": [
               "Pella",
               "Pella Christian"
+            ]
+          },
+          "gender": {
+            "$id": "#/properties/school",
+            "type": "string",
+            "title": "The gender schema",
+            "description": "Narrow results down to a specific gender.",
+            "default": "all",
+            "examples": [
+              "Boys"
             ]
           }
         },
