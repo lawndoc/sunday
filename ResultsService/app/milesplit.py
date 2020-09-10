@@ -26,7 +26,7 @@ class Athlete(EmbeddedDocument):
     gender = StringField(required=True)
     name = StringField(required=True)
     school = StringField(required=True)
-    meets = ListField()
+    meets = ListField(EmbeddedDocumentField(Result))
 
 
 class School(Document):
@@ -80,6 +80,10 @@ class MileSplit():
                 continue
             # parse every result from this race
             for finish in results[sectionNum].find_all("tr"):
+                # result = self.generateResult(finish)
+                # (pull from below) meetDoc.boysResults.append(result)
+                # (not in loops) meetDoc.save()  # done!
+                # def generateResult(self, finish):
                 place, name, grade, school, time, points = ((field.get_text() if "data-text" not in field.attrs else (field.get_text() if not field["data-text"] else field["data-text"])) for field in finish.find_all("td"))  # nice
                 # standardize school name
                 schoolName = self.search(gender=gender, school=(" ".join(school.split())), cache=matchCache)
@@ -89,6 +93,7 @@ class MileSplit():
                                 school=schoolName,
                                 time=" ".join(time.split()))
                 # add result to mongo meet document
+                # TODO: return this at the end of new function instead of appending here (move to above)
                 if gender == "m":
                     meetDoc.boysResults.append(result)
                 elif gender == "f":
@@ -102,7 +107,8 @@ class MileSplit():
                 else:
                     schoolDoc = schoolMatch[0]
                 # TODO: add athlete if not already in db
-                # TODO: add meet to athlete's meets
+                # TODO: add mongo result doc to athlete's meets
+                # TODO: return mongo result document
                 print(json.loads(result.to_json()))
         print(meet)
         print(date)
