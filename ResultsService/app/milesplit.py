@@ -1,5 +1,4 @@
 from bs4 import BeautifulSoup
-import difflib
 from fuzzywuzzy import process
 import json
 from mongoengine import *
@@ -12,6 +11,7 @@ connect("xcstats20")
 class Result(EmbeddedDocument):
     name = StringField(required=True)
     school = StringField(required=True)
+    meet = StringField(required=True)
     time = StringField(required=True)
 
 
@@ -36,7 +36,7 @@ class School(Document):
     girls = ListField(EmbeddedDocumentField(Athlete))
 
 
-class MileSplit():
+class MileSplit:
     def __init__(self):
         self.chrome_options = Options()
         self.chrome_options.add_argument("--headless")
@@ -44,6 +44,7 @@ class MileSplit():
                                        options=self.chrome_options)
         self.boyTeams = list(self.initBoyTeams())
         self.girlTeams = list(self.initGirlTeams())
+        self.matchCache = {}
 
     def addMeetResults(self, url):
         formattedUrl = url
@@ -63,57 +64,94 @@ class MileSplit():
         data = soup.find_all("table")[0]
         headers = data.find_all("thead")
         results = data.find_all("tbody")
-        # initialize school name matching cache
-        matchCache = {}
         # do for each 5k race
         for sectionNum in range(len(headers)):
             sectionTitle = headers[sectionNum].get_text().strip()
             sectionTitle = sectionTitle[:sectionTitle.index("\n")]
             # check if html section is a boys 5k, girls 5k, or neither
-            if ("boys 5000" in sectionTitle.lower()):
+            if "boys 5000" in sectionTitle.lower():
                 # print(sectionTitle)
                 gender = "m"
-            elif ("girls 5000" in sectionTitle.lower()):
+            elif "girls 5000" in sectionTitle.lower():
                 # print(sectionTitle)
                 gender = "f"
             else:
                 continue
             # parse every result from this race
             for finish in results[sectionNum].find_all("tr"):
-                # result = self.generateResult(finish)
-                # (pull from below) meetDoc.boysResults.append(result)
-                # (not in loops) meetDoc.save()  # done!
-                # def generateResult(self, finish):
-                place, name, grade, school, time, points = ((field.get_text() if "data-text" not in field.attrs else (field.get_text() if not field["data-text"] else field["data-text"])) for field in finish.find_all("td"))  # nice
-                # standardize school name
-                schoolName = self.search(gender=gender, school=(" ".join(school.split())), cache=matchCache)
-                # TODO: standardize athlete name
-                # create mongo result document
-                result = Result(name=" ".join(name.split()),
-                                school=schoolName,
-                                time=" ".join(time.split()))
+                result = self.generateResult(finish, gender, meet)
                 # add result to mongo meet document
-                # TODO: return this at the end of new function instead of appending here (move to above)
                 if gender == "m":
                     meetDoc.boysResults.append(result)
                 elif gender == "f":
                     meetDoc.girlsResults.append(result)
-                else:
-                    raise Exception("Tried to add result without gender... How did this happen?")
-                # add school if not already in db
-                schoolMatch = School.objects(name__exact=schoolName)
-                if not schoolMatch.count():
-                    schoolDoc = School(name=schoolName, classSize=self.getClass(gender, schoolName), boys=[], girls=[])
-                else:
-                    schoolDoc = schoolMatch[0]
-                # TODO: add athlete if not already in db
-                # TODO: add mongo result doc to athlete's meets
-                # TODO: return mongo result document
-                print(json.loads(result.to_json()))
-        print(meet)
-        print(date)
+        # clear cache and save meet to db
+        self.matchCache = {}
+        meetDoc.save()  # done!
 
-    def getClass(self, gender, schoolName):
+    def generateResult(self, finish, gender, meet):
+        place, name, grade, school, time, points = ((field.get_text() if "data-text" not in field.attrs else (field.get_text() if not field["data-text"] else field["data-text"])) for field in finish.find_all("td"))  # nice
+        # standardize school name
+        schoolName = self.search(gender=gender, school=(" ".join(school.split())))
+        athleteName = " ".join(name.split())
+        # create mongo result document
+        result = Result(name=athleteName,
+                        school=schoolName,
+                        meet=meet,
+                        time=" ".join(time.split()))
+        # update school stats db
+        # add school if not already in db
+        schoolQuery = School.objects(name__exact=schoolName)
+        if not schoolQuery.count():
+            schoolDoc = School(name=schoolName, classSize=self.getClass(gender, schoolName), boys=[], girls=[])
+        else:
+            schoolDoc = schoolQuery[0]
+        # add athlete if not already in school doc
+        if gender == "m":
+            try:  # update existing athlete
+                athleteDoc = School.objects(boys__name=athleteName)[0]
+                athleteDoc.meets.append(result)
+            except IndexError:  # athlete not in School doc yet
+                athleteDoc = Athlete(name=athleteName, gender=gender, school=schoolName, meets=[])
+                athleteDoc.meets.append(result)
+                # add athlete to school doc
+                schoolDoc.boys.append(athleteDoc)
+        elif gender == "f":
+            try:  # update existing athlete
+                athleteDoc = School.objects(girls__name=athleteName)[0]
+                athleteDoc.meets.append(result)
+            except IndexError:  # athlete not in School doc yet
+                athleteDoc = Athlete(name=athleteName, gender=gender, school=schoolName, meets=[])
+                athleteDoc.meets.append(result)
+                # add athlete to school doc
+                schoolDoc.girls.append(athleteDoc)
+        schoolDoc.save()
+        # send result back to update meet stats db
+        return result
+
+    def search(self, gender, school=None, conference=None, meet=None):
+        if school:
+            # trim 'High School' off of school name
+            if "High School" in school:
+                school = school[:school.index("High School")]
+            # try cache first
+            if self.matchCache:
+                try:
+                    return self.matchCache[school]
+                except KeyError:  # school not in cache
+                    pass
+            # otherwise match school to closest standardized school name
+            if gender == "m":
+                match = process.extract(school, self.boyTeams)[0][0]
+            elif gender == "f":
+                match = process.extract(school, self.girlTeams)[0][0]
+            self.matchCache[school] = match
+            return match
+        else:
+            raise Exception("Made call to search without specifying a valid search query!")
+
+    @staticmethod
+    def getClass(gender, schoolName):
         if gender == "m":
             file = "boy"
         else:
@@ -130,27 +168,6 @@ class MileSplit():
                 return "1A"
             else:
                 raise Exception("Could not match school " + schoolName + " to a class size. How did this happen?")
-
-    def search(self, gender, school=None, conference=None, meet=None, cache=None):
-        if school:
-            # trim 'High School' off of school name
-            if "High School" in school:
-                school = school[:school.index("High School")]
-            # try cache first
-            if cache:
-                try:
-                    return cache[school]
-                except KeyError:  # school not in cache
-                    pass
-            # otherwise match school to closest standardized school name
-            if gender == "m":
-                return process.extract(school, self.boyTeams)[0][0]
-            elif gender == "f":
-                return process.extract(school, self.girlTeams)[0][0]
-            else:
-                raise Exception("Tried to match a school with an invalid gender... How did this happen?")
-        else:
-            raise Exception("Made call to search without specifying any search query!")
 
     @staticmethod
     def initBoyTeams():
