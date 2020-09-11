@@ -1,43 +1,15 @@
+from app.models import *
 from bs4 import BeautifulSoup
 from fuzzywuzzy import process
 import json
-from mongoengine import *
+from mongoengine import connect
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
-
-connect("xcstats20")
-
-
-class Result(EmbeddedDocument):
-    name = StringField(required=True)
-    school = StringField(required=True)
-    meet = StringField(required=True)
-    time = StringField(required=True)
-
-
-class Meet(Document):
-    name = StringField(required=True)
-    date = DateField(required=True)
-    boysResults = ListField(EmbeddedDocumentField(Result))
-    girlsResults = ListField(EmbeddedDocumentField(Result))
-
-
-class Athlete(EmbeddedDocument):
-    gender = StringField(required=True)
-    name = StringField(required=True)
-    school = StringField(required=True)
-    meets = ListField(EmbeddedDocumentField(Result))
-
-
-class School(Document):
-    name = StringField(required=True)
-    classSize = StringField(required=True)
-    boys = ListField(EmbeddedDocumentField(Athlete))
-    girls = ListField(EmbeddedDocumentField(Athlete))
 
 
 class MileSplit:
     def __init__(self):
+        connect("xcstats20")
         self.chrome_options = Options()
         self.chrome_options.add_argument("--headless")
         self.driver = webdriver.Chrome(executable_path="/usr/bin/chromedriver",
