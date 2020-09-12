@@ -19,9 +19,9 @@ meets = Meet.objects()
 for meet in meets:
     print(meet["name"])
     print(meet["date"])
-    print("Boys Results:")
+    print("\tBoys Results:")
     for result in meet["boysResults"]:
-        print(result["name"], ":", result["time"])
-    print("Girls Results:")
+        print("\t\t", result["name"], ":", result["time"])
+    print("\tGirls Results:")
     for result in meet["girlsResults"]:
-        print(result["name"], ":", result["time"])
+        print("\t\t", result["name"], ":", result["time"])
