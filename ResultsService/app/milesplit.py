@@ -1,5 +1,7 @@
 from app.models import *
 from bs4 import BeautifulSoup
+from config import Config
+import datetime
 from fuzzywuzzy import process
 import json
 from mongoengine import connect
@@ -9,13 +11,19 @@ from selenium.webdriver.chrome.options import Options
 
 class MileSplit:
     def __init__(self):
-        connect("xcstats20")
+        if Config.DATABASE_URI:
+            connect(db=Config.DB,
+                    username=Config.DB_USER,
+                    password=Config.DB_PASS,
+                    host=Config.DATABASE_URI)
+        else:
+            connect(Config.LOCALDB)
         self.chrome_options = Options()
         self.chrome_options.add_argument("--headless")
         self.driver = webdriver.Chrome(executable_path="/usr/bin/chromedriver",
                                        options=self.chrome_options)
-        self.boyTeams = list(self.initBoyTeams())
-        self.girlTeams = list(self.initGirlTeams())
+        self.boyTeams = self.initBoyTeams()
+        self.girlTeams = self.initGirlTeams()
         self.matchCache = {}
 
     def addMeetResults(self, url):
@@ -29,7 +37,8 @@ class MileSplit:
         soup = BeautifulSoup(self.driver.page_source, "html.parser")
         # get meet name and date
         meet = soup.select("h1.meetName")[0].get_text().strip()
-        date = soup.select("div.date")[0].find_all("time")[0].get_text().strip()
+        rawDate = soup.select("div.date")[0].find_all("time")[0].get_text().strip()
+        date = self.formatDate(rawDate)
         # create empty mongo meet document
         meetDoc = Meet(name=meet, date=date, boysResults=[], girlsResults=[])
         # parse result data
@@ -42,10 +51,8 @@ class MileSplit:
             sectionTitle = sectionTitle[:sectionTitle.index("\n")]
             # check if html section is a boys 5k, girls 5k, or neither
             if "boys 5000" in sectionTitle.lower():
-                # print(sectionTitle)
                 gender = "m"
             elif "girls 5000" in sectionTitle.lower():
-                # print(sectionTitle)
                 gender = "f"
             else:
                 continue
@@ -81,7 +88,9 @@ class MileSplit:
         # add athlete if not already in school doc
         if gender == "m":
             try:  # update existing athlete
-                athleteDoc = School.objects(boys__name=athleteName)[0]
+                foundSchool = School.objects(boys__name__exact=athleteName)[0]
+                print(foundSchool.boys)
+                athleteDoc = next(athlete for athlete in foundSchool.boys if athlete["name"] == athleteName).meets.append(result)
                 athleteDoc.meets.append(result)
             except IndexError:  # athlete not in School doc yet
                 athleteDoc = Athlete(name=athleteName, gender=gender, school=schoolName, meets=[])
@@ -90,7 +99,9 @@ class MileSplit:
                 schoolDoc.boys.append(athleteDoc)
         elif gender == "f":
             try:  # update existing athlete
-                athleteDoc = School.objects(girls__name=athleteName)[0]
+                foundSchool = School.objects(girls__name__exact=athleteName)[0]
+                print(foundSchool.girls)
+                athleteDoc = next(athlete for athlete in foundSchool.girls if athlete["name"] == athleteName).meets.append(result)
                 athleteDoc.meets.append(result)
             except IndexError:  # athlete not in School doc yet
                 athleteDoc = Athlete(name=athleteName, gender=gender, school=schoolName, meets=[])
@@ -107,11 +118,10 @@ class MileSplit:
             if "High School" in school:
                 school = school[:school.index("High School")]
             # try cache first
-            if self.matchCache:
-                try:
-                    return self.matchCache[school]
-                except KeyError:  # school not in cache
-                    pass
+            try:
+                return self.matchCache[school]
+            except KeyError:  # school not in cache
+                pass
             # otherwise match school to closest standardized school name
             if gender == "m":
                 match = process.extract(school, self.boyTeams)[0][0]
@@ -123,12 +133,18 @@ class MileSplit:
             raise Exception("Made call to search without specifying a valid search query!")
 
     @staticmethod
+    def formatDate(rawDate):
+        dtDate = datetime.datetime.strptime(rawDate, "%b %d, %Y")
+        date = dtDate.strftime("%Y-%m-%d")
+        return date
+
+    @staticmethod
     def getClass(gender, schoolName):
         if gender == "m":
             file = "boy"
         else:
             file = "girl"
-        with open("static/"+file+"ClassesFormatted.json", "r") as classesFile:
+        with open("../app/static/"+file+"ClassesFormatted.json", "r") as classesFile:
             classes = json.load(classesFile)
             if schoolName in classes["4A"]:
                 return "4A"
@@ -144,19 +160,19 @@ class MileSplit:
     @staticmethod
     def initBoyTeams():
         standardSchools = set()
-        with open("static/boyClassesFormatted.json", "r") as boySchools:
+        with open("../app/static/boyClassesFormatted.json", "r") as boySchools:
             classes = json.load(boySchools)
             for classSize in classes:
-                for team in classSize:
+                for team in classes[classSize]:
                     standardSchools.add(team)
-        return standardSchools
+        return list(standardSchools)
 
     @staticmethod
     def initGirlTeams():
         standardSchools = set()
-        with open("static/girlClassesFormatted.json", "r") as girlSchools:
+        with open("../app/static/girlClassesFormatted.json", "r") as girlSchools:
             classes = json.load(girlSchools)
             for classSize in classes:
-                for team in classSize:
+                for team in classes[classSize]:
                     standardSchools.add(team)
-        return standardSchools
+        return list(standardSchools)
