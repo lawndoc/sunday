@@ -1,4 +1,4 @@
-from mongoengine import Document, EmbeddedDocument, StringField, DateField, ListField, EmbeddedDocumentField
+from mongoengine import Document, EmbeddedDocument, IntField, StringField, DateField, ListField, EmbeddedDocumentField
 
 
 class Result(EmbeddedDocument):
@@ -19,7 +19,7 @@ class Athlete(EmbeddedDocument):
     gender = StringField(required=True)
     name = StringField(required=True)
     school = StringField(required=True)
-    year = StringField(required=True)
+    year = IntField()
     meets = ListField(EmbeddedDocumentField(Result))
 
 
