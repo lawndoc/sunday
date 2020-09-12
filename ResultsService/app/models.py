@@ -19,6 +19,7 @@ class Athlete(EmbeddedDocument):
     gender = StringField(required=True)
     name = StringField(required=True)
     school = StringField(required=True)
+    year = StringField(required=True)
     meets = ListField(EmbeddedDocumentField(Result))
 
 

@@ -81,6 +81,7 @@ class MileSplit:
         # standardize school name
         schoolName = self.search(gender=gender, school=(" ".join(school.split())))
         athleteName = " ".join(name.split())
+        year = datetime.date.today.year() + (13 - (int(" ".join(grade.split()))))
         # create mongo result document
         result = Result(name=athleteName,
                         school=schoolName,
@@ -90,7 +91,10 @@ class MileSplit:
         # add school if not already in db
         schoolQuery = School.objects(name__exact=schoolName)
         if not schoolQuery.count():
-            schoolDoc = School(name=schoolName, classSize=self.getClass(gender, schoolName), boys=[], girls=[])
+            schoolDoc = School(name=schoolName,
+                               classSize=self.getClass(gender, schoolName),
+                               boys=[],
+                               girls=[])
         else:
             schoolDoc = schoolQuery[0]
         # add athlete if not already in school doc
@@ -103,7 +107,11 @@ class MileSplit:
                     foundAthlete.meets.append(result)
                 foundAthlete.meets.append(result)
             else:  # athlete not found, create and add meet result
-                athleteDoc = Athlete(name=athleteName, gender=gender, school=schoolName, meets=[])
+                athleteDoc = Athlete(name=athleteName,
+                                     gender=gender,
+                                     school=schoolName,
+                                     year=year,
+                                     meets=[])
                 athleteDoc.meets.append(result)
                 # add athlete to school doc
                 schoolDoc.boys.append(athleteDoc)
