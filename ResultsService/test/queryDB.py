@@ -17,4 +17,11 @@ else:
 meets = Meet.objects()
 
 for meet in meets:
-    print(meet.to_json())
+    print(meet["name"])
+    print(meet["date"])
+    print("Boys Results:")
+    for result in meet["boysResults"]:
+        print(result["name"], ":", result["time"])
+    print("Girls Results:")
+    for result in meet["girlsResults"]:
+        print(result["name"], ":", result["time"])
