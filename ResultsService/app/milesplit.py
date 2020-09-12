@@ -11,11 +11,11 @@ from selenium.webdriver.chrome.options import Options
 
 class MileSplit:
     def __init__(self):
-        if Config.DATABASE_URI:
-            connect(db=Config.DB,
+        if Config.DB_URI:
+            connect(db=Config.DB_NAME,
                     username=Config.DB_USER,
                     password=Config.DB_PASS,
-                    host=Config.DATABASE_URI)
+                    host=Config.DB_URI)
         else:
             connect(Config.LOCALDB)
         self.chrome_options = Options()
