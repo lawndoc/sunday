@@ -3,6 +3,9 @@ import sys, os
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
 
 from app.milesplit import MileSplit
+from app.models import *
+from config import Config
+from mongoengine import *
 import random
 from time import sleep
 
@@ -55,7 +58,56 @@ def bulkScrape():
 
 
 def exportResults():
-    print("TODO: implement function")
+    if Config.DB_URI:
+        connect(db=Config.DB_NAME,
+                username=Config.DB_USER,
+                password=Config.DB_PASS,
+                host=Config.DB_URI)
+    else:
+        connect(Config.LOCALDB)
+        for classSize in ["1A", "2A", "3A", "4A"]:
+            print("Generating stat sheets for {}".format(classSize))
+            schools = School.objects(classSize__exact=classSize)
+            meets = Meet.objects()
+
+            meetIndexes = {}
+            formattedBoysResults = []
+            formattedGirlsResults = []
+            firstRow = ["School", "Name", "Year"]
+            i = 3
+            for meet in meets:
+                firstRow.append(meet.name+" - "+str(meet.date))
+                meetIndexes[meet.name] = i
+                i += 1
+            formattedBoysResults.append(firstRow)
+            formattedGirlsResults.append(firstRow)
+            for school in schools:
+                schoolName = school.name
+                for boy in school.boys:
+                    row = [None] * len(firstRow)
+                    row[0] = schoolName
+                    row[1] = boy.name
+                    row[2] = boy.year
+                    for result in boy.meets:
+                        meetIndex = meetIndexes[result.meet]
+                        row[meetIndex] = result.time
+                    formattedBoysResults.append(row)
+                for girl in school.boys:
+                    row = [None] * len(firstRow)
+                    row[0] = schoolName
+                    row[1] = girl.name
+                    row[2] = girl.year
+                    for result in girl.meets:
+                        meetIndex = meetIndexes[result.meet]
+                        row[meetIndex] = result.time
+                    formattedGirlsResults.append(row)
+            with open("/home/doctormay6/Desktop/boys{}Stats.csv".format(classSize), "w+") as bStats:
+                for row in formattedBoysResults:
+                    bStats.write(",".join(str(field).replace(",","") for field in row) + "\n")
+            with open("/home/doctormay6/Desktop/girls{}Stats.csv".format(classSize), "w+") as bStats:
+                for row in formattedGirlsResults:
+                    bStats.write(",".join(str(field).replace(",","") for field in row) + "\n")
+
 
 
 if __name__ == "__main__":
