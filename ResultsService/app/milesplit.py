@@ -39,8 +39,12 @@ class MileSplit:
         meet = soup.select("h1.meetName")[0].get_text().strip()
         rawDate = soup.select("div.date")[0].find_all("time")[0].get_text().strip()
         date = self.formatDate(rawDate)
-        # create empty mongo meet document
-        meetDoc = Meet(name=meet, date=date, boysResults=[], girlsResults=[])
+        # add meet if not already in db
+        meetQuery = Meet.objects(name__exact=meet)
+        if not meetQuery.count():
+            meetDoc = Meet(name=meet, date=date, boysResults=[], girlsResults=[])
+        else:  # meet found, update instead
+            meetDoc = meetQuery[0]
         # parse result data
         data = soup.find_all("table")[0]
         headers = data.find_all("thead")
@@ -59,11 +63,15 @@ class MileSplit:
             # parse every result from this race
             for finish in results[sectionNum].find_all("tr"):
                 result = self.generateResult(finish, gender, meet)
-                # add result to mongo meet document
+                # add result if not already in meet doc
                 if gender == "m":
-                    meetDoc.boysResults.append(result)
+                    foundResult = next((athlete for athlete in meetDoc.boysResults if athlete.name == result.name), None)
+                    if not foundResult:
+                        meetDoc.boysResults.append(result)
                 elif gender == "f":
-                    meetDoc.girlsResults.append(result)
+                    foundResult = next((athlete for athlete in meetDoc.girlsResults if athlete.name == result.name), None)
+                    if not foundResult:
+                        meetDoc.girlsResults.append(result)
         # clear cache and save meet to db
         self.matchCache = {}
         meetDoc.save()  # done!
@@ -87,23 +95,27 @@ class MileSplit:
             schoolDoc = schoolQuery[0]
         # add athlete if not already in school doc
         if gender == "m":
-            try:  # update existing athlete
-                foundSchool = School.objects(boys__name__exact=athleteName)[0]
-                print(foundSchool.boys)
-                athleteDoc = next(athlete for athlete in foundSchool.boys if athlete["name"] == athleteName).meets.append(result)
-                athleteDoc.meets.append(result)
-            except IndexError:  # athlete not in School doc yet
+            foundAthlete = next((athlete for athlete in schoolDoc.boys if athlete["name"] == athleteName), None)
+            if foundAthlete:
+                # add meet result if not already in athlete doc
+                foundMeet = next((meet for meet in foundAthlete.meets if meet["name"] == meet), None)
+                if not foundMeet:
+                    foundAthlete.meets.append(result)
+                foundAthlete.meets.append(result)
+            else:  # athlete not found, create and add meet result
                 athleteDoc = Athlete(name=athleteName, gender=gender, school=schoolName, meets=[])
                 athleteDoc.meets.append(result)
                 # add athlete to school doc
                 schoolDoc.boys.append(athleteDoc)
         elif gender == "f":
-            try:  # update existing athlete
-                foundSchool = School.objects(girls__name__exact=athleteName)[0]
-                print(foundSchool.girls)
-                athleteDoc = next(athlete for athlete in foundSchool.girls if athlete["name"] == athleteName).meets.append(result)
-                athleteDoc.meets.append(result)
-            except IndexError:  # athlete not in School doc yet
+            foundAthlete = next((athlete for athlete in schoolDoc.girls if athlete["name"] == athleteName), None)
+            if foundAthlete:
+                # add meet result if not already in athlete doc
+                foundMeet = next((meet for meet in foundAthlete.meets if meet["name"] == meet), None)
+                if not foundMeet:
+                    foundAthlete.meets.append(result)
+                foundAthlete.meets.append(result)
+            else:  # athlete not found, create and add meet result
                 athleteDoc = Athlete(name=athleteName, gender=gender, school=schoolName, meets=[])
                 athleteDoc.meets.append(result)
                 # add athlete to school doc
