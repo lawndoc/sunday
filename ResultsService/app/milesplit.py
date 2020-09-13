@@ -80,7 +80,9 @@ class MileSplit:
         place, name, grade, school, time, points = ((field.get_text() if "data-text" not in field.attrs else (field.get_text() if not field["data-text"] else field["data-text"])) for field in finish.find_all("td"))  # nice
         # standardize school name
         schoolName = self.search(gender=gender, school=(" ".join(school.split())))
+        schoolName = schoolName.strip()
         athleteName = " ".join(name.split())
+        time = time.strip()
         if grade.split():
             year = datetime.date.today().year + (13 - (int(" ".join(grade.split()))))
         else:

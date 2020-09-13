@@ -8,6 +8,7 @@ from config import Config
 from mongoengine import *
 import random
 from time import sleep
+import xlsxwriter
 
 scraper = MileSplit()
 
@@ -38,6 +39,7 @@ def enterResults():
             try:
                 scraper.addMeetResults(url)
             except Exception as e:
+                # raise e
                 print("Invalid URL... Try again please.")
                 continue
 
@@ -53,8 +55,8 @@ def bulkScrape():
                 sleep(random.uniform(5.0, 10.0))
             except Exception as e:
                 raise e
-                print("Invalid URL {}\n Trying next URL...".format(url))
-                continue
+                # print("Invalid URL {}\n Trying next URL...".format(url))
+                # continue
 
 
 def exportResults():
@@ -65,49 +67,64 @@ def exportResults():
                 host=Config.DB_URI)
     else:
         connect(Config.LOCALDB)
-        for classSize in ["1A", "2A", "3A", "4A"]:
-            print("Generating stat sheets for {}".format(classSize))
-            schools = School.objects(classSize__exact=classSize)
-            meets = Meet.objects()
+    boysStats = xlsxwriter.Workbook('/home/doctormay6/Desktop/XCStatSheets/boysStats.xlsx')
+    girlsStats = xlsxwriter.Workbook('/home/doctormay6/Desktop/XCStatSheets/girlsStats.xlsx')
+    for classSize in ["1A", "2A", "3A", "4A"]:
+        print("Generating stat sheets for {}".format(classSize))
+        schools = School.objects(classSize__exact=classSize)
+        meets = Meet.objects()
+        boysSheet = boysStats.add_worksheet("{} Stats".format(classSize))
+        girlsSheet = girlsStats.add_worksheet("{} Stats".format(classSize))
 
-            meetIndexes = {}
-            formattedBoysResults = []
-            formattedGirlsResults = []
-            firstRow = ["School", "Name", "Year"]
-            i = 3
-            for meet in meets:
-                firstRow.append(meet.name+" - "+str(meet.date))
-                meetIndexes[meet.name] = i
-                i += 1
-            formattedBoysResults.append(firstRow)
-            formattedGirlsResults.append(firstRow)
-            for school in schools:
-                schoolName = school.name
-                for boy in school.boys:
-                    row = [None] * len(firstRow)
-                    row[0] = schoolName
-                    row[1] = boy.name
-                    row[2] = boy.year
-                    for result in boy.meets:
-                        meetIndex = meetIndexes[result.meet]
-                        row[meetIndex] = result.time
-                    formattedBoysResults.append(row)
-                for girl in school.boys:
-                    row = [None] * len(firstRow)
-                    row[0] = schoolName
-                    row[1] = girl.name
-                    row[2] = girl.year
-                    for result in girl.meets:
-                        meetIndex = meetIndexes[result.meet]
-                        row[meetIndex] = result.time
-                    formattedGirlsResults.append(row)
-            with open("/home/doctormay6/Desktop/boys{}Stats.csv".format(classSize), "w+") as bStats:
-                for row in formattedBoysResults:
-                    bStats.write(",".join(str(field).replace(",","") for field in row) + "\n")
-            with open("/home/doctormay6/Desktop/girls{}Stats.csv".format(classSize), "w+") as bStats:
-                for row in formattedGirlsResults:
-                    bStats.write(",".join(str(field).replace(",","") for field in row) + "\n")
-
+        meetIndexes = {}
+        formattedBoysResults = []
+        formattedGirlsResults = []
+        firstRow = ["School", "Name", "Year"]
+        i = 3
+        for meet in meets:
+            firstRow.append(meet.name+" - "+str(meet.date))
+            meetIndexes[meet.name] = i
+            i += 1
+        formattedBoysResults.append(firstRow)
+        formattedGirlsResults.append(firstRow)
+        for school in schools:
+            schoolName = school.name
+            for boy in school.boys:
+                row = [""] * len(firstRow)
+                row[0] = schoolName
+                row[1] = boy.name
+                row[2] = boy.year
+                for result in boy.meets:
+                    meetIndex = meetIndexes[result.meet]
+                    row[meetIndex] = result.time
+                formattedBoysResults.append(row)
+            for girl in school.boys:
+                row = [""] * len(firstRow)
+                row[0] = schoolName
+                row[1] = girl.name
+                row[2] = girl.year
+                for result in girl.meets:
+                    meetIndex = meetIndexes[result.meet]
+                    row[meetIndex] = result.time
+                formattedGirlsResults.append(row)
+        # write stats to boysSheet
+        for rowNum, row in enumerate(formattedBoysResults):
+            for colNum, data in enumerate(row):
+                if "." in str(data) and colNum not in [0, 1] and rowNum != 0:
+                    data = data[:data.index(".")]
+                if ":" in str(data):
+                    data = data.replace(":", ".")
+                boysSheet.write(rowNum, colNum, data)
+        # write stats to girlsSheet
+        for rowNum, row in enumerate(formattedGirlsResults):
+            for colNum, data in enumerate(row):
+                if "." in str(data) and colNum not in [0, 1] and rowNum != 0:
+                    data = data[:data.index(".")]
+                if ":" in str(data):
+                    data = data.replace(":", ".")
+                girlsSheet.write(rowNum, colNum, data)
+    boysStats.close()
+    girlsStats.close()
 
 
 if __name__ == "__main__":
