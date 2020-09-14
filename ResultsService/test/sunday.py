@@ -52,7 +52,7 @@ def bulkScrape():
             try:
                 scraper.addMeetResults(url)
                 print("Added a meet...")
-                sleep(random.uniform(5.0, 10.0))
+                # sleep(random.uniform(5.0, 10.0))
             except Exception as e:
                 raise e
                 # print("Invalid URL {}\n Trying next URL...".format(url))
