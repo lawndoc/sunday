@@ -7,6 +7,7 @@ import json
 from mongoengine import connect
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+from time import sleep
 
 
 class MileSplit:
@@ -34,6 +35,7 @@ class MileSplit:
             formattedUrl = url[:url.index("formatted")+len("formatted")]
         # load webpage
         self.driver.get(formattedUrl)
+        sleep(2)
         soup = BeautifulSoup(self.driver.page_source, "html.parser")
         # get meet name and date
         meet = soup.select("h1.meetName")[0].get_text().strip()
@@ -65,11 +67,11 @@ class MileSplit:
                 result = self.generateResult(finish, gender, meet)
                 # add result if not already in meet doc
                 if gender == "m":
-                    foundResult = next((athlete for athlete in meetDoc.boysResults if athlete.name == result.name), None)
+                    foundResult = next((athlete for athlete in meetDoc.boysResults if athlete.name == result.name and athlete.time == result.time), None)
                     if not foundResult:
                         meetDoc.boysResults.append(result)
                 elif gender == "f":
-                    foundResult = next((athlete for athlete in meetDoc.girlsResults if athlete.name == result.name), None)
+                    foundResult = next((athlete for athlete in meetDoc.girlsResults if athlete.name == result.name and athlete.time == result.time), None)
                     if not foundResult:
                         meetDoc.girlsResults.append(result)
         # clear cache and save meet to db
@@ -111,6 +113,9 @@ class MileSplit:
                 if not foundMeet:
                     foundAthlete.meets.append(result)
                 foundAthlete.meets.append(result)
+                # add grad year if not already in athlete doc
+                if not foundAthlete.year:
+                    foundAthlete.year = year
             else:  # athlete not found, create and add meet result
                 athleteDoc = Athlete(name=athleteName,
                                      gender=gender,
@@ -128,6 +133,9 @@ class MileSplit:
                 if not foundMeet:
                     foundAthlete.meets.append(result)
                 foundAthlete.meets.append(result)
+                # add grad year if not already in athlete doc
+                if not foundAthlete.year:
+                    foundAthlete.year = year
             else:  # athlete not found, create and add meet result
                 athleteDoc = Athlete(name=athleteName,
                                      gender=gender,
