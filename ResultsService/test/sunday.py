@@ -98,7 +98,7 @@ def exportResults():
                     meetIndex = meetIndexes[result.meet]
                     row[meetIndex] = result.time
                 formattedBoysResults.append(row)
-            for girl in school.boys:
+            for girl in school.girls:
                 row = [""] * len(firstRow)
                 row[0] = schoolName
                 row[1] = girl.name
