@@ -35,7 +35,6 @@ class MileSplit:
             formattedUrl = url[:url.index("formatted")+len("formatted")]
         # load webpage
         self.driver.get(formattedUrl)
-        sleep(2)
         soup = BeautifulSoup(self.driver.page_source, "html.parser")
         # get meet name and date
         meet = soup.select("h1.meetName")[0].get_text().strip()
