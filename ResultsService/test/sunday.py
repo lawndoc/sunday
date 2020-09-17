@@ -6,8 +6,6 @@ from app.milesplit import MileSplit
 from app.models import *
 from config import Config
 from mongoengine import *
-import random
-from time import sleep
 import xlsxwriter
 
 scraper = MileSplit()
@@ -51,8 +49,6 @@ def bulkScrape():
         for url in urls:
             try:
                 scraper.addMeetResults(url)
-                print("Added a meet...")
-                # sleep(random.uniform(5.0, 10.0))
             except Exception as e:
                 raise e
                 # print("Invalid URL {}\n Trying next URL...".format(url))

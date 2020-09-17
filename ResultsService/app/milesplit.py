@@ -76,6 +76,7 @@ class MileSplit:
         # clear cache and save meet to db
         self.matchCache = {}
         meetDoc.save()  # done!
+        print("Added meet '{}'.".format(meet))
 
     def generateResult(self, finish, gender, meet):
         place, name, grade, school, time, points = ((field.get_text() if "data-text" not in field.attrs else (field.get_text() if not field["data-text"] else field["data-text"])) for field in finish.find_all("td"))  # nice
