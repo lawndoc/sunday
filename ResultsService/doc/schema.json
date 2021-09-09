@@ -1,0 +1,204 @@
+{
+  "paths": [
+    {
+      "/api/v1/stats": {
+        "type": "object",
+        "title": "Team and Individual Stats",
+        "description": "The stats API fetches results for a specific class, conference, school, or athlete.",
+        "default": {
+          "class": ["all"],
+          "conference": ["all"],
+          "school": ["all"],
+          "gender": "all",
+          "athlete": ["all"]
+        },
+        "example_requests": [
+          {
+            "class": ["2A"],
+            "conference": ["Little Hawkeye"],
+            "school": ["Pella Christian", "Pella"],
+            "gender": "Boys",
+            "athlete": ["C.J. May", "Rob Hamann"]
+          }
+        ],
+        "required": [
+        ],
+        "properties": {
+          "class": {
+            "$id": "#/properties/class",
+            "type": "string",
+            "title": "The class schema",
+            "description": "Narrow results down to specific class size(s).",
+            "default": "all",
+            "examples": [
+              "2A"
+            ]
+          },
+          "conference": {
+            "$id": "#/properties/conference",
+            "type": "string",
+            "title": "The conference schema",
+            "description": "Narrow results down to specific conference(s).",
+            "default": "all",
+            "examples": [
+              "NICL",
+              "Little Hawkeye"
+            ]
+          },
+          "school": {
+            "$id": "#/properties/school",
+            "type": "string",
+            "title": "The school schema",
+            "description": "Narrow results down to specific team(s).",
+            "default": "all",
+            "examples": [
+              "Aplington Parkersburg",
+              "Pella Christian",
+              "Pella"
+            ]
+          },
+          "gender": {
+            "$id": "#/properties/school",
+            "type": "string",
+            "title": "The gender schema",
+            "description": "Narrow results down to a specific gender.",
+            "default": "all",
+            "examples": [
+              "Girls"
+            ]
+          },
+          "athlete": {
+            "$id": "#/properties/athlete",
+            "type": "string",
+            "title": "The athlete schema",
+            "description": "Narrow results down to specific athlete name(s).",
+            "default": "all",
+            "examples": [
+              "Girl One",
+              "Girl Two",
+              "Girl Three"
+            ]
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    {
+      "/api/v1/meets": {
+        "type": "object",
+        "title": "Meet Results",
+        "description": "The meet API fetches results for the specified meet(s).",
+        "default": {
+          "meet": ["all"],
+          "date": ["all"],
+          "school": ["all"],
+          "gender": "all"
+        },
+        "examples": [
+            {
+                "meet": ["Pella Quad", "Pella Invite"],
+                "date": ["08/29/20", "09/05/20"],
+                "school": ["Pella", "Pella Christian"],
+                "gender": "Girls"
+            }
+        ],
+        "required": [
+        ],
+        "properties": {
+          "meet": {
+            "$id": "#/properties/meet",
+            "type": "string",
+            "title": "The meet schema",
+            "description": "Narrow results down to specific meet(s).",
+            "default": "all",
+            "examples": [
+              "Pella Invite"
+            ]
+          },
+          "date": {
+            "$id": "#/properties/date",
+            "type": "string",
+            "title": "The date schema",
+            "description": "Narrow results down to specific date(s).",
+            "default": "all",
+            "examples": [
+              "08/29/20",
+              "09/05/20"
+            ]
+          },
+          "school": {
+            "$id": "#/properties/school",
+            "type": "string",
+            "title": "The school schema",
+            "description": "Narrow results down to specific school(s).",
+            "default": "all",
+            "examples": [
+              "Pella",
+              "Pella Christian"
+            ]
+          },
+          "gender": {
+            "$id": "#/properties/school",
+            "type": "string",
+            "title": "The gender schema",
+            "description": "Narrow results down to a specific gender.",
+            "default": "all",
+            "examples": [
+              "Boys"
+            ]
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    {
+      "/api/v1/search": {
+        "type": "object",
+        "title": "School/Meet search",
+        "description": "The search API finds the valid school, conference, or meet name based on the request.",
+        "default": {},
+        "examples": [
+          {
+            "school": "Pella"
+          },
+          {
+            "conference": "NICL"
+          },
+          {
+            "meet": "Pella Invite"
+          }
+        ],
+        "oneOf": [
+          {
+            "required": [
+              "school"
+            ]
+          },
+          {
+            "required": [
+              "conference"
+            ]
+          },
+          {
+            "required": [
+              "meet"
+            ]
+          }
+        ],
+        "properties": {
+          "school": {
+            "$id": "#/properties/school",
+            "type": "string",
+            "title": "The school schema",
+            "description": "An explanation about the purpose of this instance.",
+            "default": "",
+            "examples": [
+              "Pella"
+            ]
+          }
+        },
+        "additionalProperties": true
+      }
+    }
+  ]
+}

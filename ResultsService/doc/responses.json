@@ -1,0 +1,84 @@
+{
+  "paths": [
+    {
+      "/api/v1/stats": {
+        "schools": [
+          {
+            "name": "Pella Christian",
+            "class": "2A",
+            "conference": "Little Hawkeye",
+            "boys": [
+              {
+                "name": "Athlete One",
+                "meets": [
+                  "Pella Quad",
+                  "Pella Invite"
+               ]
+              },
+              {
+                "name": "Athlete Two",
+                "meets": [
+                  "Pella Quad"
+                ]
+              }
+            ],
+            "girls": [
+              {
+                "name": "Girl One",
+                "meets": [
+                  "Pella Quad",
+                  "Pella Invite"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "/api/v1/meets": {
+        "meets": [
+          {
+            "name": "Pella Quad",
+            "date": "08/29/20",
+            "boys": [
+              {
+                "name": "Boy One",
+                "school": "School One",
+                "time": "hh:mm:ss.tt"
+              },
+              {
+                "name": "Boy Two",
+                "school": "School One",
+                "time": "hh:mm:ss:tt"
+              },
+              {
+                "name": "Boy Three",
+                "school": "School Two",
+                "time": "hh:mm:ss:tt"
+              }
+            ],
+            "girls": [
+
+              {
+                "name": "Girl Four",
+                "school": "School Two",
+                "time": "hh:mm:ss.tt"
+              },
+              {
+                "name": "Girl Five",
+                "school": "School Three",
+                "time": "hh:mm:ss:tt"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "/api/v1/search": {
+        "validName": "Pella Invite"
+      }
+    }
+  ]
+}
