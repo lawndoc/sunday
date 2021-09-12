@@ -10,7 +10,7 @@ from selenium.webdriver.chrome.options import Options
 
 
 class Scraper(ABC):
-    def __init__(self) -> None:
+    def __init__(self):
         """ A web scraper that grabs and parses results from <website> meet result URLs """
         if Config.DB_URI:
             connect(db=Config.DB_NAME,
