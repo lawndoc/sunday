@@ -28,13 +28,97 @@ class MileSplit:
         self.matchCache = {}
 
     def addMeetResults(self, url):
-        formattedUrl = url
-        if "raw" in formattedUrl:
-            formattedUrl = url[:url.index("raw")] + "formatted"
+        if "raw" in url:
+            rawUrl = url[:url.index("raw")+len("raw")]
+            return self.scrapeRaw(rawUrl)
         else:
             formattedUrl = url[:url.index("formatted")+len("formatted")]
+            return self.scrapeFormatted(formattedUrl)
+
+    def scrapeRaw(self, url):
         # load webpage
-        self.driver.get(formattedUrl)
+        self.driver.get(url)
+        soup = BeautifulSoup(self.driver.page_source, "html.parser")
+        # get meet name and date
+        meet = soup.select("h1.meetName")[0].get_text().strip()
+        rawDate = soup.select("div.date")[0].find_all("time")[0].get_text().strip()
+        date = self.formatDate(rawDate)
+        # add meet if not already in db
+        meetQuery = Meet.objects(name__exact=meet)
+        if not meetQuery.count():
+            meetDoc = Meet(name=meet, date=date, boysResults=[], girlsResults=[])
+        else:  # meet found, update instead
+            meetDoc = meetQuery[0]
+        # parse result data
+        data = soup.select("pre")[0].get_text().strip()
+        print("Results:")
+        lines = data.split("\n")
+        i = 0
+        # keep track of which line we are on
+        while i < len(lines):
+            if not lines[i]:  # blank line
+                pass
+            elif "=" in lines[i]:  # part of the column headers -- skip line
+                pass
+            elif "time" in lines[i].lower():  # results column headers -- skip line
+                pass
+            elif "points" in lines[i].lower():  # team score column headers -- skip line
+                pass
+            elif "Team Score" in lines[i]:  # beginning of team scores
+                state = "teamscore"
+            elif "Boys 5,000 Meter" in lines[i]:  # start parsing boys results
+                state = "results"
+                gender = "m"
+            elif "Girls 5,000 Meter" in lines[i]:  # start parsing girls results
+                state = "results"
+                gender = "f"
+            elif state == "teamscore":  # not reading results -- skip line
+                pass
+            elif state == "results":
+                # parse result and add to school/athlete doc
+                result = self.parseRawResult(lines[i], gender, meet)
+                # add result to meet doc
+                self.updateMeetDoc(result, gender, meetDoc)
+            else:
+                raise ValueError("Reached an unexpected state while parsing raw results.")
+            i += 1
+        self.saveMeetDoc(meet, meetDoc)
+
+    def parseRawResult(self, line, gender, meet):
+        # initialize empty fields for keeping track of parsing state
+        place = 0
+        name = ""
+        nameBuilder = []
+        grade = 0
+        school = ""
+        schoolBuilder = []
+        time = ""
+        for column in line.split(" "):
+            if not column:  # blank split -- skip
+                continue
+            if place == 0:  # first column is athlete's place
+                place = int(column)
+                continue
+            if not name:
+                if not column.isnumeric():  # still reading athlete's name
+                    nameBuilder.append(column)
+                else:  # we've reached the grade column, join all parts of the athlete's name
+                    name = " ".join(nameBuilder)
+                    grade = column
+                continue
+            if not school:
+                if ":" not in column:  # still reading school name
+                    schoolBuilder.append(column)
+                else:  # we've reached the time column, join all parts of the school's name
+                    school = " ".join(schoolBuilder)
+                    time = column
+        # create result doc and add to school doc
+        result = self.updateSchoolDoc(name, grade, school, time, meet, gender)
+        return result
+
+    def scrapeFormatted(self, url):
+        # load webpage
+        self.driver.get(url)
         soup = BeautifulSoup(self.driver.page_source, "html.parser")
         # get meet name and date
         meet = soup.select("h1.meetName")[0].get_text().strip()
@@ -63,23 +147,19 @@ class MileSplit:
                 continue
             # parse every result from this race
             for finish in results[sectionNum].find_all("tr"):
-                result = self.generateResult(finish, gender, meet)
-                # add result if not already in meet doc
-                if gender == "m":
-                    foundResult = next((athlete for athlete in meetDoc.boysResults if athlete.name == result.name and athlete.time == result.time), None)
-                    if not foundResult:
-                        meetDoc.boysResults.append(result)
-                elif gender == "f":
-                    foundResult = next((athlete for athlete in meetDoc.girlsResults if athlete.name == result.name and athlete.time == result.time), None)
-                    if not foundResult:
-                        meetDoc.girlsResults.append(result)
-        # clear cache and save meet to db
-        self.matchCache = {}
-        meetDoc.save()  # done!
-        print("Added meet '{}'.".format(meet))
+                result = self.parseFormattedResult(finish, gender, meet)
+                self.updateMeetDoc(result, gender, meetDoc)
+            self.saveMeetDoc(meet, meetDoc)
 
-    def generateResult(self, finish, gender, meet):
+    def parseFormattedResult(self, finish, gender, meet):
+        # parse fields from result
         place, name, grade, school, time, points = ((field.get_text() if "data-text" not in field.attrs else (field.get_text() if not field["data-text"] else field["data-text"])) for field in finish.find_all("td"))  # nice
+        # create result doc and add to school doc
+        result = self.updateSchoolDoc(name, grade, school, time, meet, gender)
+        return result
+
+
+    def updateSchoolDoc(self, name, grade, school, time, meet, gender):
         # standardize school name
         schoolName = self.search(gender=gender, school=(" ".join(school.split())))
         schoolName = schoolName.strip()
@@ -148,6 +228,23 @@ class MileSplit:
         schoolDoc.save()
         # send result back to update meet stats db
         return result
+
+    def updateMeetDoc(self, result, gender, meetDoc):
+        # add result if not already in meet doc
+        if gender == "m":
+            foundResult = next((athlete for athlete in meetDoc.boysResults if athlete.name == result.name and athlete.time == result.time), None)
+            if not foundResult:
+                meetDoc.boysResults.append(result)
+        elif gender == "f":
+            foundResult = next((athlete for athlete in meetDoc.girlsResults if athlete.name == result.name and athlete.time == result.time), None)
+            if not foundResult:
+                meetDoc.girlsResults.append(result)
+
+    def saveMeetDoc(self, meet, meetDoc):
+        # clear cache and save meet to db
+        self.matchCache = {}
+        meetDoc.save()  # done!
+        print("Added meet '{}'.".format(meet))
 
     def search(self, gender, school=None, conference=None, meet=None):
         if school:
