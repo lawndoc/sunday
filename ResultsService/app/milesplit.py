@@ -103,11 +103,14 @@ class MileSplit(Scraper):
                 place = int(column)
                 continue
             if not name:
-                if not column.isnumeric():  # still reading athlete's name
+                if not column.isnumeric() and column != "-":  # still reading athlete's name
                     nameBuilder.append(column)
                 else:  # we've reached the grade column, join all parts of the athlete's name
                     name = " ".join(nameBuilder)
-                    grade = column
+                    if column == "-":
+                        grade = ""
+                    else:
+                        grade = column
                 continue
             if not school:
                 if ":" not in column:  # still reading school name
