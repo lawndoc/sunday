@@ -161,6 +161,12 @@ class Scraper(ABC):
         else:
             raise Exception("Made call to search without specifying a valid search query!")
 
+    def refreshDriver(self):
+        self.driver.close()
+        self.driver.quit()
+        self.driver = webdriver.Chrome(executable_path="/usr/bin/chromedriver",
+                                       options=self.chrome_options)
+
     @staticmethod
     def getClass(gender, schoolName):
         """ Match a school to its class size """
