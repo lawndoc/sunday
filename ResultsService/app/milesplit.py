@@ -48,10 +48,10 @@ class MileSplit(Scraper):
         # add meet if not already in db
         meetQuery = Meet.objects(name__exact=meet)
         if not meetQuery.count():
-            print(f"Adding new meet: {meet}")
+            print(f"Adding new meet: {meet}...", end=" ")
             meetDoc = Meet(name=meet, date=date, boysResults=[], girlsResults=[])
         else:  # meet found, update instead
-            print(f"Updating meet {meet}")
+            print(f"Updating meet {meet}...", end=" ")
             meetDoc = meetQuery[0]
         # parse result data
         data = soup.select("pre")[0].get_text().strip()
@@ -137,10 +137,10 @@ class MileSplit(Scraper):
         # add meet if not already in db
         meetQuery = Meet.objects(name__exact=meet)
         if not meetQuery.count():
-            print(f"Adding new meet: {meet}")
+            print(f"Adding new meet: {meet}..., end=" "")
             meetDoc = Meet(name=meet, date=date, boysResults=[], girlsResults=[])
         else:  # meet found, update instead
-            print(f"Updating meet {meet}")
+            print(f"Updating meet {meet}...", end=" ")
             meetDoc = meetQuery[0]
         # parse result data
         data = soup.find_all("table")[0]
