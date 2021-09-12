@@ -17,8 +17,10 @@ class Scraper(ABC):
                     username=Config.DB_USER,
                     password=Config.DB_PASS,
                     host=Config.DB_URI)
+            print("Connected to remote database.")
         else:
             connect(Config.LOCALDB)
+            print("Connected to local database.")
         self.chrome_options = Options()
         self.chrome_options.add_argument("--headless")
         self.driver = webdriver.Chrome(executable_path="/usr/bin/chromedriver",
@@ -136,7 +138,7 @@ class Scraper(ABC):
         # clear cache and save meet to db
         self.matchCache = {}
         meetDoc.save()  # done!
-        print("Added meet '{}'.".format(meet))
+        print("Saved meet '{}' to the database.".format(meet))
 
     def search(self, gender, school=None, conference=None, meet=None):
         """ Match a result's school name to its standard name in the database """
