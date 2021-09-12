@@ -58,6 +58,7 @@ class MileSplit(Scraper):
         print("Results:")
         lines = data.split("\n")
         i = 0
+        state = "skip"  # skip until we find results
         # keep track of which line we are on
         while i < len(lines):
             if not lines[i]:  # blank line
@@ -69,14 +70,14 @@ class MileSplit(Scraper):
             elif "points" in lines[i].lower():  # team score column headers -- skip line
                 pass
             elif "Team Score" in lines[i]:  # beginning of team scores
-                state = "teamscore"
-            elif "Boys 5,000 Meter" in lines[i]:  # start parsing boys results
+                state = "skip"
+            elif "Boys 5,000 Meter" in lines[i] or "Boys 3.1 Mile" in lines[i]:  # start parsing boys results
                 state = "results"
                 gender = "m"
-            elif "Girls 5,000 Meter" in lines[i]:  # start parsing girls results
+            elif "Girls 5,000 Meter" in lines[i] or "Girls 3.1 Mile" in lines[i]:  # start parsing girls results
                 state = "results"
                 gender = "f"
-            elif state == "teamscore":  # not reading results -- skip line
+            elif state == "skip":  # not reading results -- skip line
                 pass
             elif state == "results":
                 # parse result and add to school/athlete doc
