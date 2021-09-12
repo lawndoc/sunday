@@ -7,4 +7,4 @@ class Config(object):
     DB_PASS = os.environ.get("DB_PASS") or None
     DB_NAME = os.environ.get("DB_NAME") or None
     DB_URI = os.environ.get("DB_URI") or None
-    LOCALDB = "xcstats20"
+    LOCALDB = "xcstats21"
