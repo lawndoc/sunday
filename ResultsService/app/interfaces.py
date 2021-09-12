@@ -138,7 +138,7 @@ class Scraper(ABC):
         # clear cache and save meet to db
         self.matchCache = {}
         meetDoc.save()  # done!
-        print("Saved meet '{}' to the database.".format(meet))
+        print("Saved meet to the database.")
 
     def search(self, gender, school=None, conference=None, meet=None):
         """ Match a result's school name to its standard name in the database """
