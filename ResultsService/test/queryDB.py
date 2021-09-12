@@ -4,7 +4,7 @@ sys.path.insert(1, os.path.join(sys.path[0], '..'))
 
 from app.models import *
 from config import Config
-from mongoengine import *
+from mongoengine import connect
 
 if Config.DB_URI:
     connect(db=Config.DB_NAME,
