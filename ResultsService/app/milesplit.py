@@ -31,10 +31,10 @@ class MileSplit(Scraper):
         """
         if "raw" in url:
             rawUrl = url[:url.index("raw")+len("raw")]
-            return self.scrapeRaw(rawUrl)
+            self.scrapeRaw(rawUrl)
         else:
             formattedUrl = url[:url.index("formatted")+len("formatted")]
-            return self.scrapeFormatted(formattedUrl)
+            self.scrapeFormatted(formattedUrl)
 
     def scrapeRaw(self, url):
         """ Parse meet results from a raw text page and save to a mongoDB meet doc """
