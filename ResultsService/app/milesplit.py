@@ -201,7 +201,6 @@ class MileSplit:
                 foundMeet = next((meet for meet in foundAthlete.meets if meet["name"] == meet), None)
                 if not foundMeet:
                     foundAthlete.meets.append(result)
-                foundAthlete.meets.append(result)
                 # add grad year if not already in athlete doc
                 if not foundAthlete.year:
                     foundAthlete.year = year
@@ -221,7 +220,6 @@ class MileSplit:
                 foundMeet = next((meet for meet in foundAthlete.meets if meet["name"] == meet), None)
                 if not foundMeet:
                     foundAthlete.meets.append(result)
-                foundAthlete.meets.append(result)
                 # add grad year if not already in athlete doc
                 if not foundAthlete.year:
                     foundAthlete.year = year
