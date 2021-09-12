@@ -163,9 +163,6 @@ class Scraper(ABC):
 
     def refreshDriver(self):
         self.driver.close()
-        self.driver.quit()
-        self.driver = webdriver.Chrome(executable_path="/usr/bin/chromedriver",
-                                       options=self.chrome_options)
 
     @staticmethod
     def getClass(gender, schoolName):
