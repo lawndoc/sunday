@@ -55,7 +55,6 @@ class MileSplit(Scraper):
             meetDoc = meetQuery[0]
         # parse result data
         data = soup.select("pre")[0].get_text().strip()
-        print("Results:")
         lines = data.split("\n")
         i = 0
         state = "skip"  # skip until we find results
@@ -106,11 +105,11 @@ class MileSplit(Scraper):
                 place = int(column)
                 continue
             if not name:
-                if not column.isnumeric() and column != "-":  # still reading athlete's name
+                if not column.isnumeric() and column not in ["-", "FR"]:  # still reading athlete's name
                     nameBuilder.append(column)
                 else:  # we've reached the grade column, join all parts of the athlete's name
                     name = " ".join(nameBuilder)
-                    if column == "-":
+                    if column in ["-", "FR"]:
                         grade = ""
                     else:
                         grade = column
@@ -122,6 +121,7 @@ class MileSplit(Scraper):
                     school = " ".join(schoolBuilder)
                     time = column
         # create result doc and add to school doc
+#        print([place, name, grade, school, time])
         result = self.updateSchoolDoc(name, grade, school, time, meet, gender)
         return result
 
