@@ -30,8 +30,12 @@ class Scraper(ABC):
     @abstractmethod
     def addMeetResults(self, url):
         """ Parse XC meet results from the given URL and update the mongo database
-        
-            Make sure to call updateSchoolDoc, updateMeetDoc, and saveMeetDoc as you parse !!!
+
+        Scraper class usage:
+        - [object] self.driver (webdriver.Chrome)
+        - [method] self.updateSchoolDoc(name, grade, school, time, meet, gender) -> Result
+        - [method] self.updateMeetDoc(result, gender, meetDoc) -> None
+        - [method] self.saveMeetDoc(meet, meetDoc) -> None
         
         """
         pass
