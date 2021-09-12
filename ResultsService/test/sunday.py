@@ -5,7 +5,7 @@ sys.path.insert(1, os.path.join(sys.path[0], '..'))
 from app.milesplit import MileSplit
 from app.models import *
 from config import Config
-from mongoengine import *
+from mongoengine import connect
 import xlsxwriter
 
 scraper = MileSplit()
