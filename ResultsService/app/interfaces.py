@@ -1,3 +1,4 @@
+from abc import ABC, abstractmethod
 from app.models import *
 from config import Config
 import datetime
@@ -8,7 +9,7 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 
 
-class Scraper:
+class Scraper(ABC):
     def __init__(self) -> None:
         """ A web scraper that grabs and parses results from <website> meet result URLs """
         if Config.DB_URI:
@@ -25,6 +26,11 @@ class Scraper:
         self.boyTeams = self.initBoyTeams()
         self.girlTeams = self.initGirlTeams()
         self.matchCache = {}
+
+    @abstractmethod
+    def addMeetResults(self, url):
+        """ Parse XC meet results from the given URL and update the mongo database """
+        pass
 
 
     def updateSchoolDoc(self, name, grade, school, time, meet, gender):
