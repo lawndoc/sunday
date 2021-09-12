@@ -162,7 +162,7 @@ class MileSplit(Scraper):
                 result = self.parseFormattedResult(finish, gender, meet)
                 # add result to meet doc
                 self.updateMeetDoc(result, gender, meetDoc)
-            self.saveMeetDoc(meet, meetDoc)
+        self.saveMeetDoc(meet, meetDoc)
 
     def parseFormattedResult(self, finish, gender, meet):
         """ Parse a single result from a formatted field and save it to a mongoDB school doc """
