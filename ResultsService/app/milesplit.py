@@ -152,7 +152,9 @@ class MileSplit:
                 continue
             # parse every result from this race
             for finish in results[sectionNum].find_all("tr"):
+                # parse result and add to school/athlete doc
                 result = self.parseFormattedResult(finish, gender, meet)
+                # add result to meet doc
                 self.updateMeetDoc(result, gender, meetDoc)
             self.saveMeetDoc(meet, meetDoc)
 
