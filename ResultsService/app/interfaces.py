@@ -29,7 +29,11 @@ class Scraper(ABC):
 
     @abstractmethod
     def addMeetResults(self, url):
-        """ Parse XC meet results from the given URL and update the mongo database """
+        """ Parse XC meet results from the given URL and update the mongo database
+        
+            Make sure to call updateSchoolDoc, updateMeetDoc, and saveMeetDoc as you parse !!!
+        
+        """
         pass
 
 
