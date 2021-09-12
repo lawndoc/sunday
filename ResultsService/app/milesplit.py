@@ -1,6 +1,7 @@
 from app.models import *
 from bs4 import BeautifulSoup
 from app.interfaces import Scraper
+import datetime
 
 
 class MileSplit(Scraper):
@@ -153,3 +154,10 @@ class MileSplit(Scraper):
         # create result doc and add to school doc
         result = self.updateSchoolDoc(name, grade, school, time, meet, gender)
         return result
+
+    @staticmethod
+    def formatDate(rawDate):
+        """ Format the date to match the database schema """
+        dtDate = datetime.datetime.strptime(rawDate, "%b %d, %Y")
+        date = dtDate.strftime("%Y-%m-%d")
+        return date
