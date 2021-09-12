@@ -40,7 +40,6 @@ class Scraper(ABC):
         """
         pass
 
-
     def updateSchoolDoc(self, name, grade, school, time, meet, gender):
         """ Update an athlete's doc with their result, and optionally create the school or athlete if they don't exist yet """
         # standardize school name
@@ -149,13 +148,6 @@ class Scraper(ABC):
             return match
         else:
             raise Exception("Made call to search without specifying a valid search query!")
-
-    @staticmethod
-    def formatDate(rawDate):
-        """ Format the date to match the database schema """
-        dtDate = datetime.datetime.strptime(rawDate, "%b %d, %Y")
-        date = dtDate.strftime("%Y-%m-%d")
-        return date
 
     @staticmethod
     def getClass(gender, schoolName):
