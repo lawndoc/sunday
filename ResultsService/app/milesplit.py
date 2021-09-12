@@ -29,7 +29,7 @@ class MileSplit:
         self.matchCache = {}
 
     def addMeetResults(self, url):
-        """ Parse XC meet results from the given URL """
+        """ Parse XC meet results from the given URL and update the mongo database """
         if "raw" in url:
             rawUrl = url[:url.index("raw")+len("raw")]
             return self.scrapeRaw(rawUrl)
