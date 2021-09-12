@@ -32,7 +32,7 @@ class Scraper(ABC):
         """ Parse XC meet results from the given URL and update the mongo database
 
         Scraper class usage:
-        - [object] self.driver (webdriver.Chrome)
+        - [object] self.driver (selenium.webdriver.Chrome)
         - [method] self.updateSchoolDoc(name, grade, school, time, meet, gender) -> Result
         - [method] self.updateMeetDoc(result, gender, meetDoc) -> None
         - [method] self.saveMeetDoc(meet, meetDoc) -> None
