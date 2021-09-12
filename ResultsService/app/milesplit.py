@@ -137,7 +137,7 @@ class MileSplit(Scraper):
         # add meet if not already in db
         meetQuery = Meet.objects(name__exact=meet)
         if not meetQuery.count():
-            print(f"Adding new meet: {meet}..., end=" "")
+            print(f"Adding new meet: {meet}...", end=" ")
             meetDoc = Meet(name=meet, date=date, boysResults=[], girlsResults=[])
         else:  # meet found, update instead
             print(f"Updating meet {meet}...", end=" ")
