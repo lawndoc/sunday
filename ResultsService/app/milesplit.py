@@ -87,6 +87,7 @@ class MileSplit(Scraper):
                 raise ValueError("Reached an unexpected state while parsing raw results.")
             i += 1
         self.saveMeetDoc(meet, meetDoc)
+        self.refreshDriver()
 
     def parseRawResult(self, line, gender, meet):
         """ Parse a single result from a line of raw text and save it to a mongoDB school doc """
@@ -164,6 +165,7 @@ class MileSplit(Scraper):
                 # add result to meet doc
                 self.updateMeetDoc(result, gender, meetDoc)
         self.saveMeetDoc(meet, meetDoc)
+        self.refreshDriver()
 
     def parseFormattedResult(self, finish, gender, meet):
         """ Parse a single result from a formatted field and save it to a mongoDB school doc """
