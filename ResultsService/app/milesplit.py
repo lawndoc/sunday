@@ -12,6 +12,7 @@ from time import sleep
 
 class MileSplit:
     def __init__(self):
+        """ A web scraper that grabs and parses results from MileSplit XC meet result URLs """
         if Config.DB_URI:
             connect(db=Config.DB_NAME,
                     username=Config.DB_USER,
@@ -28,6 +29,7 @@ class MileSplit:
         self.matchCache = {}
 
     def addMeetResults(self, url):
+        """ Parse XC meet results from the given URL """
         if "raw" in url:
             rawUrl = url[:url.index("raw")+len("raw")]
             return self.scrapeRaw(rawUrl)
@@ -36,6 +38,7 @@ class MileSplit:
             return self.scrapeFormatted(formattedUrl)
 
     def scrapeRaw(self, url):
+        """ Parse meet results from a raw text page and save to a mongoDB meet doc """
         # load webpage
         self.driver.get(url)
         soup = BeautifulSoup(self.driver.page_source, "html.parser")
@@ -85,6 +88,7 @@ class MileSplit:
         self.saveMeetDoc(meet, meetDoc)
 
     def parseRawResult(self, line, gender, meet):
+        """ Parse a single result from a line of raw text and save it to a mongoDB school doc """
         # initialize empty fields for keeping track of parsing state
         place = 0
         name = ""
@@ -117,6 +121,7 @@ class MileSplit:
         return result
 
     def scrapeFormatted(self, url):
+        """ Parse meet results from a formatted page and save to a mongoDB meet doc """
         # load webpage
         self.driver.get(url)
         soup = BeautifulSoup(self.driver.page_source, "html.parser")
@@ -152,6 +157,7 @@ class MileSplit:
             self.saveMeetDoc(meet, meetDoc)
 
     def parseFormattedResult(self, finish, gender, meet):
+        """ Parse a single result from a formatted field and save it to a mongoDB school doc """
         # parse fields from result
         place, name, grade, school, time, points = ((field.get_text() if "data-text" not in field.attrs else (field.get_text() if not field["data-text"] else field["data-text"])) for field in finish.find_all("td"))  # nice
         # create result doc and add to school doc
@@ -160,6 +166,7 @@ class MileSplit:
 
 
     def updateSchoolDoc(self, name, grade, school, time, meet, gender):
+        """ Update an athlete's doc with their result, and optionally create the school or athlete if they don't exist yet """
         # standardize school name
         schoolName = self.search(gender=gender, school=(" ".join(school.split())))
         schoolName = schoolName.strip()
@@ -230,6 +237,7 @@ class MileSplit:
         return result
 
     def updateMeetDoc(self, result, gender, meetDoc):
+        """ Add a result to the given meet doc """
         # add result if not already in meet doc
         if gender == "m":
             foundResult = next((athlete for athlete in meetDoc.boysResults if athlete.name == result.name and athlete.time == result.time), None)
@@ -241,12 +249,14 @@ class MileSplit:
                 meetDoc.girlsResults.append(result)
 
     def saveMeetDoc(self, meet, meetDoc):
+        """ Save the meet doc's changes to the remote database """
         # clear cache and save meet to db
         self.matchCache = {}
         meetDoc.save()  # done!
         print("Added meet '{}'.".format(meet))
 
     def search(self, gender, school=None, conference=None, meet=None):
+        """ Match a result's school name to its standard name in the database """
         if school:
             # trim 'High School' off of school name
             if "High School" in school:
@@ -268,12 +278,14 @@ class MileSplit:
 
     @staticmethod
     def formatDate(rawDate):
+        """ Format the date to match the database schema """
         dtDate = datetime.datetime.strptime(rawDate, "%b %d, %Y")
         date = dtDate.strftime("%Y-%m-%d")
         return date
 
     @staticmethod
     def getClass(gender, schoolName):
+        """ Match a school to its class size """
         if gender == "m":
             file = "boy"
         else:
@@ -293,6 +305,7 @@ class MileSplit:
 
     @staticmethod
     def initBoyTeams():
+        """ Initialize the list of standaridized boys school names """
         standardSchools = set()
         with open("../app/static/boyClassesFormatted.json", "r") as boySchools:
             classes = json.load(boySchools)
@@ -303,6 +316,7 @@ class MileSplit:
 
     @staticmethod
     def initGirlTeams():
+        """ Initialize the list of standaridized girls school names """
         standardSchools = set()
         with open("../app/static/girlClassesFormatted.json", "r") as girlSchools:
             classes = json.load(girlSchools)
