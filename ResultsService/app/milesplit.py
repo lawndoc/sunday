@@ -154,7 +154,11 @@ class MileSplit(Scraper):
         results = data.find_all("tbody")
         total = 0
         for sectionNum in range(len(headers)):
-            total += len(results[sectionNum].find_all("tr"))
+            sectionTitle = headers[sectionNum].get_text().strip()
+            sectionTitle = sectionTitle[:sectionTitle.index("\n")]
+            # check if html section is a boys 5k, girls 5k, or neither
+            if "boys 5000" in sectionTitle.lower() or "girls 5000" in sectionTitle.lower():
+                total += len(results[sectionNum].find_all("tr"))
         progress = tqdm.tqdm(range(total), "Parsing results", unit="results")
         # do for each 5k race
         for sectionNum in range(len(headers)):
