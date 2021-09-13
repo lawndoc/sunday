@@ -155,7 +155,7 @@ class MileSplit(Scraper):
         total = 0
         for sectionNum in range(len(headers)):
             total += len(results[sectionNum].find_all("tr"))
-        progress = tqdm.tqdm(total, "Parsing results", unit="results")
+        progress = tqdm.tqdm(range(total), "Parsing results", unit="results")
         # do for each 5k race
         for sectionNum in range(len(headers)):
             sectionTitle = headers[sectionNum].get_text().strip()
