@@ -138,7 +138,7 @@ class Scraper(ABC):
         # clear cache and save meet to db
         self.matchCache = {}
         meetDoc.save()  # done!
-        print("Saved meet to the database.")
+        print(f"Saved '{meet}' to the database.")
 
     def search(self, gender, school=None, conference=None, meet=None):
         """ Match a result's school name to its standard name in the database """
@@ -163,6 +163,10 @@ class Scraper(ABC):
 
     def refreshDriver(self):
         self.driver.close()
+        self.driver.quit()
+        self.driver = webdriver.Chrome(executable_path="/usr/bin/chromedriver",
+                                       options=self.chrome_options)
+
 
     @staticmethod
     def getClass(gender, schoolName):
