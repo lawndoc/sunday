@@ -2,6 +2,7 @@ from app.models import *
 from bs4 import BeautifulSoup
 from app.interfaces import Scraper
 import datetime
+import tqdm
 
 
 class MileSplit(Scraper):
@@ -29,6 +30,7 @@ class MileSplit(Scraper):
             - gender -> str ("m"|"f")
         
         """
+        print("Connecting to URL...")
         if "raw" in url:
             rawUrl = url[:url.index("raw")+len("raw")]
             self.scrapeRaw(rawUrl)
@@ -48,16 +50,17 @@ class MileSplit(Scraper):
         # add meet if not already in db
         meetQuery = Meet.objects(name__exact=meet)
         if not meetQuery.count():
-            print(f"Adding new meet: {meet}...", end=" ")
+            print(f"Adding new meet: {meet}...")
             meetDoc = Meet(name=meet, date=date, boysResults=[], girlsResults=[])
         else:  # meet found, update instead
-            print(f"Updating meet {meet}...", end=" ")
+            print(f"Updating meet {meet}...")
             meetDoc = meetQuery[0]
         # parse result data
         data = soup.select("pre")[0].get_text().strip()
         lines = data.split("\n")
         i = 0
         state = "skip"  # skip until we find results
+        progress = tqdm.tqdm(range(len(lines)), "Parsing results", unit="lines")
         # keep track of which line we are on
         while i < len(lines):
             if not lines[i]:  # blank line
@@ -86,6 +89,8 @@ class MileSplit(Scraper):
             else:
                 raise ValueError("Reached an unexpected state while parsing raw results.")
             i += 1
+            progress.update(1)
+        progress.close()
         self.saveMeetDoc(meet, meetDoc)
         self.refreshDriver()
 
@@ -138,15 +143,19 @@ class MileSplit(Scraper):
         # add meet if not already in db
         meetQuery = Meet.objects(name__exact=meet)
         if not meetQuery.count():
-            print(f"Adding new meet: {meet}...", end=" ")
+            print(f"Adding new meet: {meet}...")
             meetDoc = Meet(name=meet, date=date, boysResults=[], girlsResults=[])
         else:  # meet found, update instead
-            print(f"Updating meet {meet}...", end=" ")
+            print(f"Updating meet {meet}...")
             meetDoc = meetQuery[0]
         # parse result data
         data = soup.find_all("table")[0]
         headers = data.find_all("thead")
         results = data.find_all("tbody")
+        total = 0
+        for sectionNum in range(len(headers)):
+            total += len(results[sectionNum].find_all("tr"))
+        progress = tqdm.tqdm(total, "Parsing results", unit="results")
         # do for each 5k race
         for sectionNum in range(len(headers)):
             sectionTitle = headers[sectionNum].get_text().strip()
@@ -164,6 +173,8 @@ class MileSplit(Scraper):
                 result = self.parseFormattedResult(finish, gender, meet)
                 # add result to meet doc
                 self.updateMeetDoc(result, gender, meetDoc)
+                progress.update(1)
+        progress.close()
         self.saveMeetDoc(meet, meetDoc)
         self.refreshDriver()
 
