@@ -1,6 +1,6 @@
 *__pycache__/
 venv/
 .idea/
-ResultsService/util/boyClasses*
-ResultsService/util/girlClasses*
-ResultsService/util/schools.json
+ResultsService/util/classFormat/boyClasses*
+ResultsService/util/classFormat/girlClasses*
+ResultsService/util/classFormat/schools.json
