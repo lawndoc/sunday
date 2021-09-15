@@ -1,5 +1,11 @@
 #!/usr/bin/env python3
 
+"""
+This file was test code that helped implement Milesplit raw result scraping
+before messing with the MongoDB
+"""
+
+
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
