@@ -56,6 +56,8 @@ class Scraper(ABC):
         """ Update an athlete's doc with their result, and optionally create the school or athlete if they don't exist yet """
         # standardize school name
         schoolName = self.search(gender=gender, school=(" ".join(school.split())))
+        if not schoolName:  # school didn't have a close match (probably out of state) -- don't log athlete in DB
+            return None
         schoolName = schoolName.strip()
         athleteName = " ".join(name.split())
         time = time.strip()
@@ -124,6 +126,8 @@ class Scraper(ABC):
     def updateMeetDoc(self, result, gender, meetDoc):
         """ Add a result to the given meet doc """
         # add result if not already in meet doc
+        if not result:  # school is out of state -- no result created
+            return
         if gender == "m":
             foundResult = next((athlete for athlete in meetDoc.boysResults if athlete.name == result.name and athlete.time == result.time), None)
             if not foundResult:
@@ -153,9 +157,15 @@ class Scraper(ABC):
                 pass
             # otherwise match school to closest standardized school name
             if gender == "m":
-                match = process.extract(school, self.boyTeams)[0][0]
+                match = process.extract(school, self.boyTeams)[0]
+                if match[1] < 90:  # no good match -- school probably isn't in Iowa
+                    return None
+                match = match[0]
             elif gender == "f":
-                match = process.extract(school, self.girlTeams)[0][0]
+                match = process.extract(school, self.girlTeams)[0]
+                if match[1] < 90:  # no good match -- school probably isn't in Iowa
+                    return None
+                match = match[0]
             self.matchCache[school] = match
             return match
         else:
