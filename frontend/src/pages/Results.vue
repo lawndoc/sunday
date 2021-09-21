@@ -1,15 +1,7 @@
 <template>
   <q-page class="q-pa-sm">
 
-    <tables-basic></tables-basic>
-
-    <table-actions class="q-mt-lg"></table-actions>
-
-    <table-dark-mode class="q-mt-lg"></table-dark-mode>
-
-    <table-progress class="q-mt-lg"></table-progress>
-
-    <table-custom-grid class="q-mt-lg"></table-custom-grid>
+    <results-table></results-table>
 
   </q-page>
 </template>
