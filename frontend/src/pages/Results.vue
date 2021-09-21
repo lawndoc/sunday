@@ -1,7 +1,7 @@
 <template>
   <q-page class="q-pa-sm">
 
-    <results-table></results-table>
+    <results-table/>
 
   </q-page>
 </template>
