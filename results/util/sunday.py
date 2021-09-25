@@ -1,9 +1,9 @@
 import sys, os
-# add app packages to path
+# add previous dir to path
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
 
-from app.milesplit import MileSplit
-from app.models import *
+from api.milesplit import MileSplit
+from api.models import *
 from config import Config
 from mongoengine import connect
 import xlsxwriter
@@ -56,13 +56,7 @@ def bulkScrape():
 
 
 def exportResults():
-    if Config.DB_URI:
-        connect(db=Config.DB_NAME,
-                username=Config.DB_USER,
-                password=Config.DB_PASS,
-                host=Config.DB_URI)
-    else:
-        connect(Config.LOCALDB)
+    connect(host=Config.MONGODB_SETTINGS["host"])
     boysStats = xlsxwriter.Workbook('/home/doctormay6/Desktop/XCStatSheets/boysStats.xlsx')
     girlsStats = xlsxwriter.Workbook('/home/doctormay6/Desktop/XCStatSheets/girlsStats.xlsx')
     for classSize in ["1A", "2A", "3A", "4A"]:

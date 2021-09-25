@@ -11,6 +11,7 @@ class Result(EmbeddedDocument):
 class Meet(Document):
     name = StringField(required=True)
     date = DateField(required=True)
+    location = StringField()
     boysResults = ListField(EmbeddedDocumentField(Result))
     girlsResults = ListField(EmbeddedDocumentField(Result))
 

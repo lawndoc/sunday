@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from app.models import *
+from api.models import *
 from config import Config
 import datetime
 from fuzzywuzzy import process
@@ -12,14 +12,11 @@ from selenium.webdriver.chrome.options import Options
 class Scraper(ABC):
     def __init__(self):
         """ A web scraper that grabs and parses results from <website> meet result URLs """
-        if Config.DB_URI:
-            connect(db=Config.DB_NAME,
-                    username=Config.DB_USER,
-                    password=Config.DB_PASS,
-                    host=Config.DB_URI)
+        if "localhost" not in Config.MONGODB_SETTINGS["host"]:
+            connect(host=Config.MONGODB_SETTINGS["host"])
             print("Connected to remote database.")
         else:
-            connect(Config.LOCALDB)
+            connect(host=Config.MONGODB_SETTINGS["host"])
             print("Connected to local database.")
         self.chrome_options = Options()
         self.chrome_options.add_argument("--headless")
