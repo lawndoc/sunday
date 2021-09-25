@@ -6,4 +6,4 @@ class Config(object):
     MONGODB_SETTINGS = {
         "host": os.environ.get("DB_URI") or None
     }
-    LOCALDB = "xcstats21"
+    LOCALDB = "testStats"
