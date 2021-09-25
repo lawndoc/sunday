@@ -16,12 +16,12 @@ def getMeets():
 @app.get("/meets/<id>")
 def getOneMeet(id: str):
     """ Return the specified Meet document """
-    boysPage = int(request.args.get('boys-page',1))
-    boysLimit = int(request.args.get('boys-limit',0))
+    boysPage = int(request.args.get('boys_page',1))
+    boysLimit = int(request.args.get('boys_limit',0))
     boysOffset = (boysPage-1) * boysLimit
     boysLast = boysOffset + boysLimit
-    girlsPage = int(request.args.get('girls-page',1))
-    girlsLimit = int(request.args.get('girls-limit',0))
+    girlsPage = int(request.args.get('girls_page',1))
+    girlsLimit = int(request.args.get('girls_limit',0))
     girlsOffset = (girlsPage-1) * girlsLimit
     girlsLast = girlsOffset + girlsLimit
     meet = Meet.objects.filter(id=id).fields(slice__boysResults=[boysOffset, boysLast],
