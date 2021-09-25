@@ -56,10 +56,7 @@ def bulkScrape():
 
 
 def exportResults():
-    if Config.MONGODB_SETTINGS["host"]:
-        connect(host=Config.MONGODB_SETTINGS["host"])
-    else:
-        connect(Config.LOCALDB)
+    connect(host=Config.MONGODB_SETTINGS["host"])
     boysStats = xlsxwriter.Workbook('/home/doctormay6/Desktop/XCStatSheets/boysStats.xlsx')
     girlsStats = xlsxwriter.Workbook('/home/doctormay6/Desktop/XCStatSheets/girlsStats.xlsx')
     for classSize in ["1A", "2A", "3A", "4A"]:

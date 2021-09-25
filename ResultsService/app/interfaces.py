@@ -12,11 +12,11 @@ from selenium.webdriver.chrome.options import Options
 class Scraper(ABC):
     def __init__(self):
         """ A web scraper that grabs and parses results from <website> meet result URLs """
-        if Config.MONGODB_SETTINGS["host"]:
+        if "localhost" not in Config.MONGODB_SETTINGS["host"]:
             connect(host=Config.MONGODB_SETTINGS["host"])
             print("Connected to remote database.")
         else:
-            connect(Config.LOCALDB)
+            connect(host=Config.MONGODB_SETTINGS["host"])
             print("Connected to local database.")
         self.chrome_options = Options()
         self.chrome_options.add_argument("--headless")
