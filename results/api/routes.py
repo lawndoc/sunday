@@ -3,7 +3,7 @@ from api import app
 from flask import jsonify, request
 
 
-@app.route("/meets", methods=["GET"])
+@app.get("/meets")
 def getMeets():
     """ Return all Meet documents """
     page = int(request.args.get('page',1))
@@ -11,7 +11,7 @@ def getMeets():
     meets = Meet.objects.exclude("boysResults", "girlsResults").paginate(page=page, per_page=limit)
     return jsonify(meets), 200
 
-@app.route("/meets/<id>", methods=["GET"])
+@app.get("/meets/<id>")
 def getOneMeet(id: str):
     """ Return the specified Meet document """
     boysPage = int(request.args.get('boys-page',1))
@@ -22,7 +22,7 @@ def getOneMeet(id: str):
                                              slice__girlsResults=[girlsPage-1, girlsLimit]).first()
     return jsonify(meet), 200
 
-@app.route("/schools", methods=["GET"])
+@app.get("/schools")
 def getSchools():
     """ Return all School documents """
     page = int(request.args.get('page',1))
@@ -30,7 +30,7 @@ def getSchools():
     meets = School.objects.exclude("boys", "girls").paginate(page=page, per_page=limit)
     return jsonify(meets), 200
 
-@app.route("/schools/<id>", methods=["GET"])
+@app.get("/schools/<id>")
 def getOneSchool(id: str):
     """ Return the specified School document """
     meet = School.objects(id=id).first()
