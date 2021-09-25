@@ -1,6 +1,6 @@
-from app.models import *
+from api.interfaces import Scraper
+from api.models import *
 from bs4 import BeautifulSoup
-from app.interfaces import Scraper
 import datetime
 import tqdm
 

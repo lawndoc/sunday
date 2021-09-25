@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from app.models import *
+from api.models import *
 from config import Config
 import datetime
 from fuzzywuzzy import process

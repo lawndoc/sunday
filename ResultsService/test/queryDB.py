@@ -1,8 +1,8 @@
 import sys, os
-# add app packages to path
+# add api packages to path
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
 
-from app.models import *
+from api.models import *
 from config import Config
 from mongoengine import connect
 
