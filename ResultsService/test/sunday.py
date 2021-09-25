@@ -1,5 +1,5 @@
 import sys, os
-# add app packages to path
+# add previous dir to path
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
 
 from app.milesplit import MileSplit
@@ -56,11 +56,8 @@ def bulkScrape():
 
 
 def exportResults():
-    if Config.DB_URI:
-        connect(db=Config.DB_NAME,
-                username=Config.DB_USER,
-                password=Config.DB_PASS,
-                host=Config.DB_URI)
+    if Config.MONGODB_SETTINGS["host"]:
+        connect(host=Config.MONGODB_SETTINGS["host"])
     else:
         connect(Config.LOCALDB)
     boysStats = xlsxwriter.Workbook('/home/doctormay6/Desktop/XCStatSheets/boysStats.xlsx')

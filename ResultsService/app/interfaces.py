@@ -12,11 +12,8 @@ from selenium.webdriver.chrome.options import Options
 class Scraper(ABC):
     def __init__(self):
         """ A web scraper that grabs and parses results from <website> meet result URLs """
-        if Config.DB_URI:
-            connect(db=Config.DB_NAME,
-                    username=Config.DB_USER,
-                    password=Config.DB_PASS,
-                    host=Config.DB_URI)
+        if Config.MONGODB_SETTINGS["host"]:
+            connect(host=Config.MONGODB_SETTINGS["host"])
             print("Connected to remote database.")
         else:
             connect(Config.LOCALDB)
