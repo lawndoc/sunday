@@ -1,7 +1,20 @@
 <template>
-    <h1>Under construction</h1>
+  <q-page class="q-pa-sm">
+
+    <meets-table/>
+
+  </q-page>
 </template>
+
 <script>
+import {defineComponent, defineAsyncComponent} from 'vue';
+export default defineComponent({
+  name: "Table",
+  components: {
+    MeetsTable: defineAsyncComponent(() => import('components/MeetsTable'))
+  },
+})
 </script>
+
 <style>
 </style>
