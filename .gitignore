@@ -1,6 +1,16 @@
-*__pycache__/
-venv/
+# IDE stuff
 .idea/
+
+# Python stuff
+__pycache__/
+venv/
+
+# Node/Vue stuff
+.quasar/
+node_modules
+package-lock.json
+
+# Misc. outputs and resources
 ResultsService/util/classFormat/boyClasses*
 ResultsService/util/classFormat/girlClasses*
 ResultsService/util/classFormat/schools.json
