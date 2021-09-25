@@ -5,7 +5,7 @@ from flask import jsonify, request
 
 @app.get("/meets")
 def getMeets():
-    """ Return all Meet documents """
+    """ Return all Meet documents (no results) with optional pagination """
     page = int(request.args.get('page',1))
     limit = int(request.args.get('limit',0))
     offset = (page-1) * limit
@@ -15,7 +15,7 @@ def getMeets():
 
 @app.get("/meets/<id>")
 def getOneMeet(id: str):
-    """ Return the specified Meet document """
+    """ Return the specified Meet document with optional pagination for results """
     boysPage = int(request.args.get('boys_page',1))
     boysLimit = int(request.args.get('boys_limit',0))
     boysOffset = (boysPage-1) * boysLimit
@@ -30,7 +30,7 @@ def getOneMeet(id: str):
 
 @app.get("/schools")
 def getSchools():
-    """ Return all School documents """
+    """ Return all School documents (no athlete list) with optional pagination """
     page = int(request.args.get('page',1))
     limit = int(request.args.get('limit',0))
     offset = (page-1) * limit
