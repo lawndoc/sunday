@@ -1,5 +1,5 @@
 from .models import *
-from app import app
+from api import app
 from flask import jsonify
 
 
