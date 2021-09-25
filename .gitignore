@@ -9,6 +9,7 @@ venv/
 .quasar/
 node_modules
 package-lock.json
+.eslintrc.js
 
 # Misc. outputs and resources
 ResultsService/util/classFormat/boyClasses*
