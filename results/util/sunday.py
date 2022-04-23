@@ -2,7 +2,7 @@ import sys, os
 # add previous dir to path
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
 
-from api.milesplit import MileSplit
+from api.parsers.milesplit import MileSplit
 from api.models import *
 from config import Config
 from mongoengine import connect

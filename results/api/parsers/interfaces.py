@@ -7,47 +7,25 @@ import json
 from mongoengine import connect
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+# PDFOCR dependencies
+from pdf2image import convert_from_path
+from PIL import Image, ImageFilter, ImageEnhance
+import pytesseract
+from textblob import TextBlob
 
 
-class Scraper(ABC):
+class Parser():
     def __init__(self):
-        """ A web scraper that grabs and parses results from <website> meet result URLs """
+        """ An interface class capable of saving formatted meet data to the application database """
         if "localhost" not in Config.MONGODB_SETTINGS["host"]:
             connect(host=Config.MONGODB_SETTINGS["host"])
             print("Connected to remote database.")
         else:
             connect(host=Config.MONGODB_SETTINGS["host"])
             print("Connected to local database.")
-        self.chrome_options = Options()
-        self.chrome_options.add_argument("--headless")
-        self.driver = webdriver.Chrome(executable_path="/usr/bin/chromedriver",
-                                       options=self.chrome_options)
         self.boyTeams = self.initBoyTeams()
         self.girlTeams = self.initGirlTeams()
         self.matchCache = {}
-
-    @abstractmethod
-    def addMeetResults(self, url):
-        """ Parse XC meet results from the given URL and update the mongo database
-
-        Scraper class usage:
-            - [object] self.driver (selenium.webdriver.Chrome)
-            - [method] self.updateSchoolDoc(name, grade, school, time, meet, gender) -> Result
-            - [method] self.updateMeetDoc(result, gender, meetDoc) -> None
-            - [method] self.saveMeetDoc(meet, meetDoc) -> None
-
-        Raw input accepted:
-            - name
-            - school
-            - meet
-
-        Formatted input needed:
-            - grade -> int range 9-12
-            - time -> str "XX:XX.XX"
-            - gender -> str ("m"|"f")
-        
-        """
-        pass
 
     def updateSchoolDoc(self, name, grade, school, time, meet, gender):
         """ Update an athlete's doc with their result, and optionally create the school or athlete if they don't exist yet """
@@ -168,13 +146,6 @@ class Scraper(ABC):
         else:
             raise Exception("Made call to search without specifying a valid search query!")
 
-    def refreshDriver(self):
-        self.driver.close()
-        self.driver.quit()
-        self.driver = webdriver.Chrome(executable_path="/usr/bin/chromedriver",
-                                       options=self.chrome_options)
-
-
     @staticmethod
     def getClass(gender, schoolName):
         """ Match a school to its class size """
@@ -216,3 +187,127 @@ class Scraper(ABC):
                 for team in classes[classSize]:
                     standardSchools.add(team)
         return list(standardSchools)
+
+
+
+class Scraper(Parser, ABC):
+    def __init__(self):
+        """ A web scraper that grabs and parses results from <website> meet result URLs """
+        super.__init__()
+        self.chrome_options = Options()
+        self.chrome_options.add_argument("--headless")
+        self.driver = webdriver.Chrome(executable_path="/usr/bin/chromedriver",
+                                       options=self.chrome_options)
+
+    @abstractmethod
+    def addMeetResults(self, url):
+        """ Parse XC meet results from the given URL and update the mongo database
+
+        Scraper class usage:
+            - [object] self.driver <selenium.webdriver.Chrome>
+            - [method] self.refreshDriver() : <None>
+            - [method] self.updateSchoolDoc(name, grade, school, time, meet, gender) : <Result>
+            - [method] self.updateMeetDoc(result, gender, meetDoc) : <None>
+            - [method] self.saveMeetDoc(meet, meetDoc) : <None>
+
+        Raw input accepted:
+            - name
+            - school
+            - meet
+
+        Formatted input needed:
+            - grade -> int range 9-12
+            - time -> str "XX:XX.XX"
+            - gender -> str ("m"|"f")
+        
+        """
+        pass
+
+    def refreshDriver(self):
+        self.driver.close()
+        self.driver.quit()
+        self.driver = webdriver.Chrome(executable_path="/usr/bin/chromedriver",
+                                       options=self.chrome_options)
+
+
+
+
+
+class PDFOCR(Parser, ABC):
+    def __init__(self):
+        """ A PDF parser that extracts raw text using OCR """
+        
+
+    @abstractmethod
+    def addMeetResults(self, pdfPaths):
+        """ Parse XC meet results from the given PDFs and update the mongo database
+
+        PDFOCR class usage:
+            - [method] self.convertToText(pdfPath) : <str>
+            - [method] self.updateSchoolDoc(name, grade, school, time, meet, gender) : <Result>
+            - [method] self.updateMeetDoc(result, gender, meetDoc) : <None>
+            - [method] self.saveMeetDoc(meet, meetDoc) : <None>
+
+        Raw input accepted:
+            - name
+            - school
+            - meet
+
+        Formatted input needed:
+            - grade -> int range 9-12
+            - time -> str "XX:XX.XX"
+            - gender -> str ("m"|"f")
+        
+        """
+
+    def convertToText(self, pdfPath="test.pdf"):
+        """ Extract raw text from the PDF at the specified path """
+        print("Converting pdf pages to images...")
+        numOfPages = self.pdfToImg(pdfPath)
+        print("Extracting text...")
+        extractedText = self.extractTextFromImages(numOfPages)
+        print("Exporting to 'output.txt'...")
+        return extractedText
+
+    @staticmethod
+    def pdfToImg(pdfPath):
+        """ Convert the given PDF's pages into images
+        Inputs:
+            pdfPath (str) : path to pdf to convert to images
+        Outputs:
+            imageCount (int) : number of images; one for each page of the pdf
+        """
+        pages = convert_from_path(pdfPath, dpi=450)
+        imageCount = 0
+        for page in pages:
+            imageCount += 1
+            filename = "workdir/page_"+str(imageCount)+".jpg"
+            page.save(filename, 'JPEG')
+        return imageCount
+
+    @staticmethod
+    def extractTextFromImages(imageCount):
+        """ Extract text from the given image
+        Inputs:
+            imageCount (list) : list of images from which text will be extracted
+        Outputs:
+            text (str)    : text extracted from the images
+        """
+        text = ""
+        for i in range(imageCount):
+            filename = "page_"+str(i+1)+".jpg"
+            # Import and enhance image
+            originalImage = Image.open(filename)
+            workingImage = originalImage.copy()
+            workingImage = originalImage.filter(ImageFilter.MedianFilter())
+            enhanceSharpness = ImageEnhance.Sharpness(workingImage)
+            enhanceColor = ImageEnhance.Color(workingImage)
+            workingImage = enhanceSharpness.enhance(2)
+            workingImage = enhanceColor.enhance(0)
+            workingImage = workingImage.convert('1')
+            # Extract text
+            pagetext = pytesseract.image_to_string(workingImage, config="--dpi 450")
+            # Remove multi-line continuations
+            pagetext = pagetext.replace("-\n", "")
+            text += pagetext
+        return text

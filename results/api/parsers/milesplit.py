@@ -1,4 +1,4 @@
-from api.interfaces import Scraper
+from api.parsers.interfaces import Scraper
 from api.models import *
 from bs4 import BeautifulSoup
 import datetime
